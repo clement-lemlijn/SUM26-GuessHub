@@ -1,122 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import { generateQuestion } from "./utils/game";
 
-function App() {
-  const [count, setCount] = useState(0)
+import ScoreHeader from "./components/ScoreHeader";
+import QuestionCard from "./components/QuestionCard";
+import OptionButton from "./components/OptionButton";
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+export default function App() {
+    const [data, setData] = useState([]);
+    const [question, setQuestion] = useState(null);
+    const [options, setOptions] = useState([]);
+    const [status, setStatus] = useState("idle");
+    const [score, setScore] = useState(0);
+    const [streak, setStreak] = useState(0);
+
+    useEffect(() => {
+        fetch("/data/performers.json")
+            .then(r => r.json())
+            .then(json => {
+                setData(json);
+                const q = generateQuestion(json);
+                setQuestion(q.correct);
+                setOptions(q.options);
+            });
+    }, []);
+
+    function nextQuestion(list = data) {
+        const q = generateQuestion(list);
+        setQuestion(q.correct);
+        setOptions(q.options);
+        setStatus("idle");
+    }
+
+    function handleAnswer(opt) {
+        if (status !== "idle") return;
+
+        if (opt.name === question.name) {
+            setStatus("correct");
+            setScore(s => s + 1);
+            setStreak(s => s + 1);
+        } else {
+            setStatus("wrong");
+            setStreak(0);
+        }
+
+        setTimeout(() => nextQuestion(), 900);
+    }
+
+    if (!question) return null;
+
+    return (
+        <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center px-4 py-6">
+
+            <ScoreHeader score={score} streak={streak} />
+
+            <div className="w-full max-w-sm">
+                <QuestionCard image={question.image} status={status} />
+            </div>
+
+            <div className="w-full max-w-sm mt-6 space-y-2">
+                {options.map((opt, i) => (
+                    <OptionButton
+                        key={i}
+                        label={opt.name}
+                        status={status}
+                        isCorrect={opt.name === question.name}
+                        onClick={() => handleAnswer(opt)}
+                    />
+                ))}
+            </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    );
 }
-
-export default App
