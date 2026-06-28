@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { generateQuestion } from "./utils/game";
+import { motion, AnimatePresence } from "framer-motion";
 
 import ScoreHeader from "./components/ScoreHeader";
 import QuestionCard from "./components/QuestionCard";
@@ -50,13 +51,17 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center px-4 py-6">
+            {/* HEADER */}
+            <div className="w-full max-w-sm">
+                <ScoreHeader score={score} streak={streak} />
+            </div>
 
-            <ScoreHeader score={score} streak={streak} />
-
+            {/* IMAGE */}
             <div className="w-full max-w-sm">
                 <QuestionCard image={question.image} status={status} />
             </div>
 
+            {/* OPTIONS */}
             <div className="w-full max-w-sm mt-6 space-y-2">
                 {options.map((opt, i) => (
                     <OptionButton
